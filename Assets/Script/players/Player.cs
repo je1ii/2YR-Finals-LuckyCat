@@ -18,7 +18,7 @@ public class Player : MonoBehaviour
     {
         rb = this.gameObject.GetComponent<Rigidbody>();
         fpc = FindObjectOfType<FirstPersonCamera>();
-        playerHealth = 1;
+        playerHealth = 3;
         poisonDeathChance = 1;
         isPoisoned = false;
     }
@@ -60,8 +60,13 @@ public class Player : MonoBehaviour
 
         if(playerResistance[fate])
         {
+            // put ui here to let player know that they lost hp bc of poison
             playerHealth--;
-            PlayerHasBeenPoisoned();
+
+            if (playerHealth == 0)
+            {
+                PlayerHasBeenPoisoned();
+            }
         }
         else
         {
@@ -84,7 +89,7 @@ public class Player : MonoBehaviour
 
     public void GunShot()
     {
-        playerHealth--;
+        playerHealth-=3;
         PlayerHasBeenShot();
     }
 

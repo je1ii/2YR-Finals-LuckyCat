@@ -29,6 +29,8 @@ public class GameManager : MonoBehaviour
 
     public float afterRoundTimer;
     public bool startTimer;
+
+    // script references
     private Poison poison;
     private Poison1 poison1;
     private RevolverRoulette gun;
@@ -85,7 +87,14 @@ public class GameManager : MonoBehaviour
 
             if(afterRoundTimer <= 0.0f)
             {
-                // set end timer ui here 
+                if (playerLost)
+                {
+                    // set end timer ui here (if player did not choose)
+                }
+                else
+                {
+                    // set end timer ui here (if player chose an option)
+                }
             }
         }
     }
@@ -118,9 +127,13 @@ public class GameManager : MonoBehaviour
                     {
                         poison1.UsePoison();
                     }
-                    else
+                    else if (poison.gameObject.activeSelf == true)
                     {
                         poison.UsePoison();
+                    }
+                    else
+                    {
+                        gun.UseGun();
                     }
                 }
                 else
@@ -138,7 +151,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // draw
+            // draw 
             Debug.Log("Draw. The next round will start in a few.");
             await Task.Delay(3000);
             ResetRound();
@@ -181,6 +194,7 @@ public class GameManager : MonoBehaviour
 
         if(decoy.decoyIndex < 8)
         {
+            // ui here shuffle
             await ShuffleAllCards();
         }
 
@@ -205,16 +219,19 @@ public class GameManager : MonoBehaviour
 
         if(Mathf.Abs(cScore) > Mathf.Abs(pScore))
         {
+            // ui player wins
             Debug.Log("Player Wins");
             compLost = true;
         }
         else if(Mathf.Abs(pScore) > Mathf.Abs(cScore))
         {
+            //ui computer wins
             Debug.Log("Computer Wins");
             playerLost = true;
         }
         else
         {
+            // ui draw
             Debug.Log("NO ONE WINS :)");
         }
     }
