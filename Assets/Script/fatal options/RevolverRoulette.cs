@@ -10,6 +10,7 @@ public class RevolverRoulette : MonoBehaviour
     public int bulletIndex;
     public int fateIndex;
     public bool hasBeenShot;
+    private bool isGunInUse;
 
     private GameManager gm;
     private Player p;
@@ -30,8 +31,13 @@ public class RevolverRoulette : MonoBehaviour
 
     public async void UseGun()
     {
+        if (isGunInUse) return;
+        isGunInUse = true;
+
         await UsingGun();
         gm.ResetRound();
+
+        isGunInUse = false;
     }
 
     public async Task UsingGun()

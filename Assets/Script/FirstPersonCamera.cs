@@ -63,10 +63,16 @@ public class FirstPersonCamera : MonoBehaviour
             if(poison.activeSelf == false)
             {
                 FocusOn2ndPoison();
+                // items ui
+                gm.waitingForPlayerUI.SetActive(false);
+                gm.poisonUIInteract.SetActive(true);
             }
             else
             {   
                 FocusOnPoison();
+                // items ui
+                gm.waitingForPlayerUI.SetActive(false);
+                gm.poisonUIInteract.SetActive(true);
             }
             
         }
@@ -77,10 +83,16 @@ public class FirstPersonCamera : MonoBehaviour
             if(poison.activeSelf == false)
             {
                 UnFocusOn2ndPoison();
+                // items ui
+                gm.waitingForPlayerUI.SetActive(true);
+                gm.poisonUIInteract.SetActive(false);
             }
             else
             {   
                 UnFocusOnPoison();
+                // items ui
+                gm.waitingForPlayerUI.SetActive(true);
+                gm.poisonUIInteract.SetActive(false);
             }
             
         }
@@ -89,13 +101,19 @@ public class FirstPersonCamera : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.A) && !focusRevolver && (!focusPoison || !focus2ndPoison) && !lockCam && gm.playerLost)
         {
             FocusOnGun();
+            // items ui
+            gm.waitingForPlayerUI.SetActive(false);
+            gm.revolverUIInteract.SetActive(true);
+            
         }
 
         // when a is released, will unfocus on gun
         if(Input.GetKeyUp(KeyCode.A) && focusRevolver && (!focusPoison || !focus2ndPoison) && !lockCam && gm.playerLost)
         {
             UnFocusOnGun();
-        }
+            gm.waitingForPlayerUI.SetActive(true);
+            gm.revolverUIInteract.SetActive(false);
+        } 
 
         cam.Lens.FieldOfView = fov;
         if(isFocusing)
@@ -143,6 +161,11 @@ public class FirstPersonCamera : MonoBehaviour
         {
             cam.LookAt = deadLookAt.transform;
         }
+
+        if(!poison.activeSelf && !poison1.activeSelf)
+        {
+            gm.poisonUIInteractD.SetActive(false);
+        }
     }
 
     void DetectItem()
@@ -156,16 +179,22 @@ public class FirstPersonCamera : MonoBehaviour
             if(Input.GetKeyDown(KeyCode.E) && hit.collider.gameObject.name == "Bottle1") 
             {
                 hit.collider.gameObject.GetComponent<Poison>().UsePoison();
+                // dissable items ui
+                gm.poisonUIInteract.SetActive(false);
             }
 
             if(Input.GetKeyDown(KeyCode.E) && hit.collider.gameObject.name == "Bottle2") 
             {
                 hit.collider.gameObject.GetComponent<Poison1>().UsePoison();
+                // dissable items ui
+                gm.poisonUIInteract.SetActive(false);
             }
 
             if(Input.GetKeyDown(KeyCode.E) && hit.collider.gameObject.name == "Revolver") 
             {
                 hit.collider.gameObject.GetComponent<RevolverRoulette>().UseGun();
+                // dissable items ui
+                gm.revolverUIInteract.SetActive(false);
             }
         }
     }

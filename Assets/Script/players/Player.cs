@@ -13,9 +13,11 @@ public class Player : MonoBehaviour
     private int poisonDeathChance;
     private FirstPersonCamera fpc;
     private Rigidbody rb;
+    private GameManager gm;
 
     void Start()
     {
+        gm = FindObjectOfType<GameManager>();
         rb = this.gameObject.GetComponent<Rigidbody>();
         fpc = FindObjectOfType<FirstPersonCamera>();
         playerHealth = 3;
@@ -28,7 +30,23 @@ public class Player : MonoBehaviour
         if(playerHealth == 0)
         {
             Debug.Log("Player Lost");
+            // player died ui
+            StartCoroutine(PlayerDiedUI());
         }
+    }
+
+    // ui cooldown
+    IEnumerator PlayerDiedUI()
+    {
+        yield return new WaitForSeconds(3f);
+        gm.playerDiedUI.SetActive(true);
+    }
+
+    IEnumerator LostHP()
+    {
+        gm.lostHPUI.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        gm.lostHPUI.SetActive(false);
     }
 
     public void PoisonPlayer()
@@ -60,8 +78,10 @@ public class Player : MonoBehaviour
 
         if(playerResistance[fate])
         {
-            // put ui here to let player know that they lost hp bc of poison
             playerHealth--;
+            // player lost 1 hp
+            StartCoroutine(LostHP());
+
 
             if (playerHealth == 0)
             {

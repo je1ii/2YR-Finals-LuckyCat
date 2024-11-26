@@ -29,6 +29,7 @@ public class Card : MonoBehaviour
         {
             CheckCards();
             gm.GetScoreForEveryone();
+            gm.UpdateCardsUIVisibility();
         }
 
         if(gm.playerHand.Count == 3 && !isCardsDown)
@@ -126,6 +127,9 @@ public class Card : MonoBehaviour
                 }
                 
                 isCardsDown = false;
+                
+                // activate card ui
+                gm.cardsUI.SetActive(true);
             }
             else
             {
@@ -148,6 +152,9 @@ public class Card : MonoBehaviour
                 }
 
                 isCardsDown = true;
+
+                // deactivate card ui
+                gm.cardsUI.SetActive(false);
             }
         }
     }

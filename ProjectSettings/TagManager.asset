@@ -14,12 +14,16 @@ TagManager:
   - Seven
   - Eight
   - Nine
+  - Ten
+  - Jack
+  - Queen
+  - King
   - Ten&Face
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - PostProcessing
   - Water
   - UI
   - Option

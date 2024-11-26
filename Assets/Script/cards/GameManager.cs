@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using System.Threading.Tasks;
 
 public class GameManager : MonoBehaviour
@@ -38,6 +40,37 @@ public class GameManager : MonoBehaviour
     private DiscardPile dp;
     private Player p;
 
+    // ui
+    [Header("UI")]
+    public GameObject cardsUI;
+    public TextMeshProUGUI cardsUIText;
+    public TextMeshProUGUI cardsUITextTotal;
+    public GameObject cantDrawUI;
+    public GameObject timerUI;
+    public TextMeshProUGUI timerUIText;
+    public Image timerfillUI;
+    public GameObject timesUpUI;
+    public GameObject playerWinsUI;
+    public GameObject computerWinsUI;
+    public GameObject noWinsUI;
+    public GameObject waitingForPlayerUI;
+    public GameObject poisonUIInteractD;
+    public GameObject revolverUIInteract;
+    public GameObject poisonUIInteract;
+    public GameObject drawUI;
+    public GameObject waitingForComputerUI;
+    public GameObject shuffleUI;
+    public GameObject lostHPUI;
+    public GameObject playerDiedUI;
+
+    private bool isViewingCards = false;
+
+    // sound effects
+    [Header("Sound Effects")]
+    public AudioSource source;
+
+    public AudioClip cardsShuffleSE;
+
     void Awake()
     {
         decoy = FindObjectOfType<Deck>();
@@ -60,13 +93,30 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // playerScoreText = playerTotalHand; insert ui text here
+        // cards UI
+        if (playerHand.Count > 0)
+        {
+            cardsUIText.text = "";
+
+            foreach (Card card in playerHand)
+            {
+                cardsUIText.text += $"{card.gameObject.tag}\n";
+            }
+
+            cardsUITextTotal.text = $"Total Cards: {playerTotalHand}";
+        }
+        else
+        {
+            cardsUIText.text = ""; 
+            cardsUITextTotal.text = "";
+        }
 
         if(Input.GetKeyDown(KeyCode.R) && playerHand.Count > 1)
         {
             if(playerHand.Count == 3)
             {
-                // put ui here to let the player know they cant draw anymore card
+                // cant draw ui
+                StartCoroutine(CantDrawUI());
             }
             else
             {
@@ -81,22 +131,48 @@ public class GameManager : MonoBehaviour
 
         if(startTimer)
         {
-            // set start timer ui here 
-
-            afterRoundTimer -= Time.deltaTime;
-
-            if(afterRoundTimer <= 0.0f)
+            // ui timer
+            if(afterRoundTimer > 0)
             {
-                if (playerLost)
-                {
-                    // set end timer ui here (if player did not choose)
-                }
-                else
-                {
-                    // set end timer ui here (if player chose an option)
-                }
+                afterRoundTimer -= Time.deltaTime;
+                UpdateTimer(afterRoundTimer);
+            }
+            else
+            {
+                afterRoundTimer = 0;
             }
         }
+    }
+
+    void UpdateTimer(float currentTime)
+    {
+        currentTime = Mathf.Max(0, currentTime);
+
+        int seconds = Mathf.FloorToInt(currentTime);
+        timerUIText.text = seconds.ToString();
+
+        timerfillUI.fillAmount = currentTime / 30f;
+    }
+
+    // checks if the player is viewing the cards
+    public void UpdateCardsUIVisibility()
+    {
+        isViewingCards = playerHand.Exists(card => !card.isCardsDown);
+    }
+
+    // ui cooldown
+    IEnumerator CantDrawUI()
+    {
+        cantDrawUI.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        cantDrawUI.SetActive(false);
+    }
+
+    IEnumerator PlayerLostUI()
+    {
+        timesUpUI.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        timesUpUI.SetActive(false);
     }
 
     public void StartRound()
@@ -109,16 +185,21 @@ public class GameManager : MonoBehaviour
         GetScoreForEveryone();
         CheckWinner();
 
-        //startTimer = true;
+        startTimer = true;
+
         if(playerLost) 
         {
             // player lost
+            
             Debug.Log("Waiting for player...");
             await WaitingForPlayer();
 
             // if player did not choose and ran out of time
             if(playerLost)
             {
+                //startTimer = false;
+                StartCoroutine(PlayerLostUI());
+
                 int fate = Random.Range(0, 10);
 
                 if(fate > 5)
@@ -130,10 +211,6 @@ public class GameManager : MonoBehaviour
                     else if (poison.gameObject.activeSelf == true)
                     {
                         poison.UsePoison();
-                    }
-                    else
-                    {
-                        gun.UseGun();
                     }
                 }
                 else
@@ -153,7 +230,12 @@ public class GameManager : MonoBehaviour
         {
             // draw 
             Debug.Log("Draw. The next round will start in a few.");
+            startTimer = false;
+            afterRoundTimer = 0;
+            await Task.Delay(2000);
+            drawUI.SetActive(true);
             await Task.Delay(3000);
+            drawUI.SetActive(false);
             ResetRound();
         }
 
@@ -165,20 +247,28 @@ public class GameManager : MonoBehaviour
         // will wait player to choose which option they choose 
         // but will auto choose if time ends and player didnt choose
 
-        // set ui here to let the player know
+        await Task.Delay(2000);
+        
+        waitingForPlayerUI.SetActive(true);
 
         await Task.Delay(5000); //TEMP TIMER
         //await Task.Delay(30000);
+
+        waitingForPlayerUI.SetActive(false);
     }
 
     public async Task WaitingForComputer()
     {
         // will wait computer to choose which option they choose
+     
+        await Task.Delay(2000);
 
-        // set ui here to let the player know
+        waitingForComputerUI.SetActive(true);
 
         await Task.Delay(5000); //TEMP TIMER
         //await Task.Delay(30000);
+
+        waitingForComputerUI.SetActive(false);
     }
 
     public async void ResetRound()
@@ -192,10 +282,22 @@ public class GameManager : MonoBehaviour
         startTimer = false;
         afterRoundTimer = 30f;
 
-        if(decoy.decoyIndex < 8)
+        if(p.playerHealth > 0 && decoy.decoyIndex < 8)
         {
-            // ui here shuffle
+            shuffleUI.SetActive(true);
+
+            // shuffle sound effects
+            source.loop = true;
+            source.PlayOneShot(cardsShuffleSE);
+            source.Play();
+
             await ShuffleAllCards();
+
+            // stop shuffle sound effects
+            source.Stop();
+            source.loop = false;
+
+            shuffleUI.SetActive(false);
         }
 
         if(p.isPoisoned)
@@ -209,7 +311,7 @@ public class GameManager : MonoBehaviour
         StartRound();
     }
 
-    public void CheckWinner()
+    public async void CheckWinner()
     {
         int pScore = playerTotalHand - 9;
         int cScore = compTotalHand - 9;
@@ -219,20 +321,28 @@ public class GameManager : MonoBehaviour
 
         if(Mathf.Abs(cScore) > Mathf.Abs(pScore))
         {
-            // ui player wins
             Debug.Log("Player Wins");
+            playerWinsUI.SetActive(true);
             compLost = true;
+            await Task.Delay(2000);
+            playerWinsUI.SetActive(false);
         }
         else if(Mathf.Abs(pScore) > Mathf.Abs(cScore))
         {
             //ui computer wins
             Debug.Log("Computer Wins");
+            computerWinsUI.SetActive(true);
             playerLost = true;
+            await Task.Delay(2000);
+            computerWinsUI.SetActive(false);
         }
         else
         {
             // ui draw
             Debug.Log("NO ONE WINS :)");
+            noWinsUI.SetActive(true);
+            await Task.Delay(2000);
+            noWinsUI.SetActive(false);
         }
     }
 
@@ -370,8 +480,17 @@ public class GameManager : MonoBehaviour
                 case "Nine":
                     value[i] = 9;
                     break;
-                case "Ten&Face":
+                case "Ten":
                     value[i] = 0;
+                    break;
+                case "Jack":
+                    value[i] = 1;
+                    break;
+                case "Queen":
+                    value[i] = 2;
+                    break;
+                case "King":
+                    value[i] = 3;
                     break;
                 default:
                     break;
